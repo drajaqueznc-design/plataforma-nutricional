@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plataforma Nutricional — Dra. Jáquez</title>
+<link rel="stylesheet" href="/static/css/main.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+</head>
+<body>
+
+<!-- HEADER -->
+<div id="header">
+  <div class="brand">
+    <div class="brand-pulse"></div>
+    <span class="brand-name">Plataforma Nutricional</span>
+    <span class="brand-sub">Dra. Anayanet Jáquez</span>
+  </div>
+  <div class="header-right">
+    <span class="sync-info" id="syncBadge">—</span>
+    <button class="btn btn-ghost btn-sm" onclick="showView('importar',this)">⊕ Importar</button>
+    <button class="btn btn-primary btn-sm" onclick="openNuevoPaciente()">+ Nuevo paciente</button>
+  </div>
+</div>
+
+<!-- LAYOUT -->
+<div id="layout">
+
+  <!-- SIDEBAR -->
+  <div id="sidebar">
+    <div class="nav-group">
+      <div class="nav-group-label">Principal</div>
+      <button class="nav-btn active" onclick="showView('pacientes',this)">
+        <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Pacientes
+      </button>
+      <button class="nav-btn" onclick="showView('estadisticas',this)">
+        <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        Estadísticas
+      </button>
+      <button class="nav-btn" onclick="showView('dietas',this)">
+        <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+        Banco de Dietas
+      </button>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label">Institución</div>
+      <button class="nav-btn" onclick="setFilter('UM',this)">
+        <span class="inst-dot" style="background:var(--um)"></span>Unión Médica
+      </button>
+      <button class="nav-btn" onclick="setFilter('MAT',this)">
+        <span class="inst-dot" style="background:var(--mat)"></span>Materno
+      </button>
+      <button class="nav-btn" onclick="setFilter('PRIVADA',this)">
+        <span class="inst-dot" style="background:var(--priv)"></span>Privada
+      </button>
+      <button class="nav-btn" onclick="setFilter('todos',this)">
+        <span class="inst-dot" style="background:var(--muted)"></span>Todas
+      </button>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label">Riesgo</div>
+      <button class="nav-btn" onclick="setFilter('alto',this)">
+        <span class="inst-dot" style="background:var(--danger)"></span>Alto riesgo
+      </button>
+      <button class="nav-btn" onclick="setFilter('sin_calc',this)">
+        <span class="inst-dot" style="background:var(--muted)"></span>Sin evaluar
+      </button>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div id="main">
+
+    <!-- VIEW: PACIENTES -->
+    <div class="view active" id="view-pacientes">
+      <div class="stats-grid">
+        <div class="stat-card c-accent">
+          <div class="stat-label">Total pacientes</div>
+          <div class="stat-value" id="s-total">—</div>
+          <div class="stat-sub">Todas las instituciones</div>
+        </div>
+        <div class="stat-card c-um">
+          <div class="stat-label">Unión Médica</div>
+          <div class="stat-value" style="color:var(--um)" id="s-um">—</div>
+        </div>
+        <div class="stat-card c-mat">
+          <div class="stat-label">Materno</div>
+          <div class="stat-value" style="color:var(--mat)" id="s-mat">—</div>
+        </div>
+        <div class="stat-card" style="border-top:2px solid var(--purple)">
+          <div class="stat-label">Privada</div>
+          <div class="stat-value" style="color:var(--purple)" id="s-priv">—</div>
+        </div>
+        <div class="stat-card c-warn">
+          <div class="stat-label">Alto riesgo</div>
+          <div class="stat-value" style="color:var(--warn)" id="s-risk">—</div>
+          <div class="stat-sub">OBSCORE alto</div>
+        </div>
+      </div>
+
+      <div class="search-wrap">
+        <svg class="search-ico" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input class="search-input" id="searchQ" placeholder="Buscar por nombre o cédula…">
+      </div>
+
+      <div class="filter-row">
+        <button class="filter-btn active" onclick="setFilter('todos',this)">Todos</button>
+        <button class="filter-btn" onclick="setFilter('UM',this)">Unión Médica</button>
+        <button class="filter-btn" onclick="setFilter('MAT',this)">Materno</button>
+        <button class="filter-btn" onclick="setFilter('PRIVADA',this)">Privada</button>
+        <button class="filter-btn" onclick="setFilter('alto',this)">Alto riesgo</button>
+        <button class="filter-btn" onclick="setFilter('sin_calc',this)">Sin evaluar</button>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Paciente</th>
+              <th>Institución</th>
+              <th>Edad</th>
+              <th>IMC</th>
+              <th>% Grasa</th>
+              <th>Músculo</th>
+              <th>Última visita</th>
+              <th>OBSCORE</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="patientBody"></tbody>
+        </table>
+        <div class="empty-state" id="emptyPacientes">
+          <svg fill="none" stroke="currentColor" stroke-width="1.4" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+          <p>No hay pacientes registrados.<br>Importa desde Consulta Práctica o agrega uno nuevo.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW: IMPORTAR -->
+    <div class="view" id="view-importar">
+      <div class="sec-hdr"><span class="sec-title">Importar pacientes — Consulta Práctica</span></div>
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-title">Importar desde backup CONSULV4.MDB</div>
+        <div class="g2" style="gap:16px;margin-bottom:14px">
+          <div style="border:1.5px dashed var(--border);border-radius:var(--radius-lg);padding:24px;text-align:center">
+            <div style="font-size:30px;margin-bottom:8px">🏥</div>
+            <div style="font-weight:600;color:var(--um);margin-bottom:6px">Unión Médica</div>
+            <div style="font-size:12px;color:var(--muted);margin-bottom:12px">CONSULV4_UnionMedica.MDB</div>
+            <button class="btn btn-ghost btn-sm" onclick="document.getElementById('fUM').click()">Seleccionar archivo</button>
+            <input type="file" id="fUM" style="display:none" accept=".mdb,.MDB,.csv,.CSV" onchange="importarMDB('fUM','UM')">
+            <div id="stUM" style="font-size:11px;margin-top:10px;color:var(--muted)"></div>
+          </div>
+          <div style="border:1.5px dashed var(--border);border-radius:var(--radius-lg);padding:24px;text-align:center">
+            <div style="font-size:30px;margin-bottom:8px">🏨</div>
+            <div style="font-weight:600;color:var(--mat);margin-bottom:6px">Materno</div>
+            <div style="font-size:12px;color:var(--muted);margin-bottom:12px">CONSULV4_Materno.MDB</div>
+            <button class="btn btn-ghost btn-sm" onclick="document.getElementById('fMAT').click()">Seleccionar archivo</button>
+            <input type="file" id="fMAT" style="display:none" accept=".mdb,.MDB,.csv,.CSV" onchange="importarMDB('fMAT','MAT')">
+            <div id="stMAT" style="font-size:11px;margin-top:10px;color:var(--muted)"></div>
+          </div>
+        </div>
+        <div class="alert alert-warn" style="margin-bottom:10px">
+          ⚠ Procesamiento local — ningún dato clínico se envía a servidores externos.
+        </div>
+        <div class="alert alert-info">
+          ℹ Acepta archivos .MDB (backup directo) y .CSV (exportación manual). Si el MDB no abre en Windows, exporta desde Consulta Práctica como CSV y súbelo aquí.
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Datos de demostración</div>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:12px">Carga pacientes de ejemplo para explorar la plataforma antes de importar datos reales.</p>
+        <button class="btn btn-ghost btn-sm" onclick="cargarDemo('UM')">Cargar demo Unión Médica</button>
+        <button class="btn btn-ghost btn-sm" style="margin-left:8px" onclick="cargarDemo('MAT')">Cargar demo Materno</button>
+      </div>
+    </div>
+
+    <!-- VIEW: ESTADÍSTICAS -->
+    <div class="view" id="view-estadisticas">
+      <div class="sec-title" style="margin-bottom:18px">Dashboard de investigación</div>
+      <div class="stats-grid" style="margin-bottom:20px">
+        <div class="stat-card c-accent"><div class="stat-label">Total</div><div class="stat-value" id="est-total">—</div></div>
+        <div class="stat-card c-um"><div class="stat-label">Unión Médica</div><div class="stat-value" style="color:var(--um)" id="est-um">—</div></div>
+        <div class="stat-card c-mat"><div class="stat-label">Materno</div><div class="stat-value" style="color:var(--mat)" id="est-mat">—</div></div>
+        <div class="stat-card" style="border-top:2px solid var(--purple)"><div class="stat-label">Privada</div><div class="stat-value" style="color:var(--purple)" id="est-priv">—</div></div>
+        <div class="stat-card c-warn"><div class="stat-label">Resistencia insulina</div><div class="stat-value" style="color:var(--warn)" id="est-ri">—</div><div class="stat-sub">HOMA-IR ≥2.5</div></div>
+      </div>
+      <div class="g2" style="gap:14px">
+        <div class="card">
+          <div class="card-title">Distribución IMC</div>
+          <div class="chart-wrap"><canvas id="estChart1"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-title">OBSCORE — Distribución de riesgo</div>
+          <div class="chart-wrap"><canvas id="estChart2"></canvas></div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:14px">
+        <div class="card-title">Exportar datos</div>
+        <div style="display:flex;gap:10px">
+          <a href="/api/exportar/csv" class="btn btn-ghost btn-sm">↓ CSV</a>
+          <button class="btn btn-ghost btn-sm" disabled>↓ Excel (próx.)</button>
+          <button class="btn btn-ghost btn-sm" disabled>↓ SPSS (próx.)</button>
+          <button class="btn btn-ghost btn-sm" disabled>↓ R (próx.)</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW: DIETAS -->
+    <div class="view" id="view-dietas">
+      <div class="sec-hdr">
+        <span class="sec-title">Banco de Dietas</span>
+        <button class="btn btn-ghost btn-sm">+ Agregar plantilla</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;display:flex;align-items:center;justify-content:space-between">
+          <div><div style="font-weight:500">Dieta de Bajo Índice Glucémico</div><div style="font-size:11px;color:var(--muted);margin-top:2px">Control glucémico · Pendiente cargar plantilla Word</div></div>
+          <div style="display:flex;gap:8px"><button class="btn btn-ghost btn-sm" disabled>Ver</button><button class="btn btn-primary btn-sm" disabled>Asignar</button></div>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;display:flex;align-items:center;justify-content:space-between">
+          <div><div style="font-weight:500">Dieta Baja en FODMAPs</div><div style="font-size:11px;color:var(--muted);margin-top:2px">SII / distensión · Pendiente cargar plantilla Word</div></div>
+          <div style="display:flex;gap:8px"><button class="btn btn-ghost btn-sm" disabled>Ver</button><button class="btn btn-primary btn-sm" disabled>Asignar</button></div>
+        </div>
+        <div style="background:var(--surface);border:1.5px dashed var(--border);border-radius:var(--radius-lg);padding:16px;opacity:.5">
+          <div style="color:var(--muted);font-size:13px">+ Próximas plantillas — Hipocalórica, Alta proteína, Antiinflamatoria, Sarcopenia…</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- OVERLAY: PACIENTE MODAL -->
+<div class="overlay" id="overlayPaciente" onclick="if(event.target===this)closeOverlay('overlayPaciente')">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div>
+        <div class="modal-name" id="modalPacienteName">—</div>
+        <div class="modal-meta" id="modalPacienteMeta">—</div>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="closeOverlay('overlayPaciente')">✕</button>
+    </div>
+    <div class="modal-body" id="modalPacienteBody">
+      <div class="loading"><div class="spinner"></div></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost btn-sm" onclick="closeOverlay('overlayPaciente')">Cerrar</button>
+      <button class="btn btn-success btn-sm" id="btnGuardarPaciente">Guardar expediente</button>
+    </div>
+  </div>
+</div>
+
+<!-- OVERLAY: NUEVO PACIENTE -->
+<div class="overlay" id="overlayNuevo" onclick="if(event.target===this)closeOverlay('overlayNuevo')">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-hdr">
+      <div class="modal-name">Nuevo paciente</div>
+      <button class="btn btn-ghost btn-sm" onclick="closeOverlay('overlayNuevo')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="g2">
+        <div class="field"><label>Nombre *</label><input id="np-nombre" placeholder="Nombre(s)"></div>
+        <div class="field"><label>Apellidos *</label><input id="np-apellidos" placeholder="Apellidos"></div>
+        <div class="field"><label>Cédula</label><input id="np-cedula" placeholder="000-0000000-0"></div>
+        <div class="field"><label>Fecha nacimiento</label><input type="date" id="np-dob"></div>
+        <div class="field"><label>Sexo</label>
+          <select id="np-sexo"><option value="">—</option><option value="F">Femenino</option><option value="M">Masculino</option></select>
+        </div>
+        <div class="field"><label>Institución</label>
+          <select id="np-inst"><option value="UM">Unión Médica</option><option value="MAT">Materno</option><option value="PRIVADA">Privada</option></select>
+        </div>
+        <div class="field"><label>Teléfono</label><input id="np-tel" placeholder="809-000-0000"></div>
+        <div class="field"><label>Ocupación</label><input id="np-ocup"></div>
+      </div>
+      <input type="hidden" id="np-fecha">
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost btn-sm" onclick="closeOverlay('overlayNuevo')">Cancelar</button>
+      <button class="btn btn-primary btn-sm" onclick="createPaciente()">Crear paciente</button>
+    </div>
+  </div>
+</div>
+
+<!-- OVERLAY: NUEVA VISITA -->
+<div class="overlay" id="overlayNuevaVisita" onclick="if(event.target===this)closeOverlay('overlayNuevaVisita')">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-hdr">
+      <div class="modal-name">Nueva visita</div>
+      <button class="btn btn-ghost btn-sm" onclick="closeOverlay('overlayNuevaVisita')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="nv-pid">
+      <div class="g2" style="margin-bottom:12px">
+        <div class="field"><label>Fecha</label><input type="date" id="nv-fecha"></div>
+        <div class="field"><label>Institución</label>
+          <select id="nv-inst"><option value="UM">Unión Médica</option><option value="MAT">Materno</option><option value="PRIVADA">Privada</option></select>
+        </div>
+        <div class="field span2"><label>Motivo de consulta</label><input id="nv-motivo" placeholder="Control, primera consulta, seguimiento…"></div>
+      </div>
+      <div style="font-size:11px;color:var(--muted);font-weight:600;margin-bottom:8px;text-transform:uppercase;letter-spacing:.06em">Módulos activos en esta visita</div>
+      <div class="g2">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px"><input type="checkbox" id="nv-mod-ob"> Módulo Obesidad</label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px"><input type="checkbox" id="nv-mod-sm"> Salud Mental</label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px"><input type="checkbox" id="nv-mod-sibo"> SIBO/IMO</label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px"><input type="checkbox" id="nv-mod-eii"> EII (Crohn/CU)</label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px"><input type="checkbox" id="nv-mod-farm"> Farmacoterapia</label>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost btn-sm" onclick="closeOverlay('overlayNuevaVisita')">Cancelar</button>
+      <button class="btn btn-primary btn-sm" onclick="createVisita()">Crear visita</button>
+    </div>
+  </div>
+</div>
+
+<!-- OVERLAY: VISITA COMPLETA -->
+<div class="overlay" id="overlayVisita" onclick="if(event.target===this)closeOverlay('overlayVisita')">
+  <div class="modal" style="width:960px">
+    <div class="modal-hdr">
+      <div>
+        <div class="modal-name" id="visitaTitle">—</div>
+        <div class="modal-meta" id="visitaMeta">—</div>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="closeOverlay('overlayVisita')">✕</button>
+    </div>
+    <div class="modal-body" id="visitaBody">
+      <div class="loading"><div class="spinner"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script src="/static/js/app.js"></script>
+</body>
+</html>
