@@ -35,11 +35,11 @@ def today():
 
 @app.route('/')
 def index():
-    return send_from_directory('static', 'index.html')
+    return send_from_directory('.', 'index.html')
 
 @app.route('/static/<path:path>')
 def static_files(path):
-    return send_from_directory('static', path)
+    return send_from_directory('.', path)
 
 # ════════════════════════════════════════════════════════════
 # PACIENTES
